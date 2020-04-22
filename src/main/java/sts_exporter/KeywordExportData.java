@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import basemod.BaseMod;
 import com.megacrit.cardcrawl.helpers.GameDictionary;
 
 import sts_exporter.patches.BaseModPatches;
@@ -15,25 +16,34 @@ class KeywordExportData implements Comparable<KeywordExportData> {
     public ArrayList<String> names = new ArrayList<>();
     public ModExportData mod;
 
-    KeywordExportData(ExportHelper export, String name, String description) {
+    KeywordExportData(ExportHelper export, String name, String key, String description) {
         this.name = name;
         this.description = description;
         this.descriptionHTML = RelicExportData.smartTextToHTML(description,true,true);
         this.descriptionPlain = RelicExportData.smartTextToPlain(description,true,true);
-        this.mod = export.findMod(BaseModPatches.keywordClasses.get(name));
+        this.mod = export.findMod(BaseModPatches.keywordClasses.get(key));
         this.mod.keywords.add(this);
     }
 
     public static ArrayList<KeywordExportData> exportAllKeywords(ExportHelper export) {
         ArrayList<KeywordExportData> keywords = new ArrayList<>();
-        HashMap<String,KeywordExportData> keywordLookup = new HashMap<>();
-        for (Map.Entry<String,String> kw : GameDictionary.keywords.entrySet()) {
+        HashMap<String, KeywordExportData> keywordLookup = new HashMap<>();
+        for (Map.Entry<String, String> kw : GameDictionary.keywords.entrySet()) {
             String parent = GameDictionary.parentWord.get(kw.getKey());
-            if (parent == null || parent.equals(kw.getKey())) {
-                KeywordExportData keyword = new KeywordExportData(export, kw.getKey(), kw.getValue());
-                keywords.add(keyword);
-                keywordLookup.put(kw.getKey(),keyword);
+
+            String name = kw.getKey();
+            if (parent != null)
+            {
+                String proper = BaseMod.getKeywordProper(parent);
+                if (proper != null)
+                    name = proper;
             }
+
+            //if (parent == null || parent.equals(kw.getKey())) {
+            KeywordExportData keyword = new KeywordExportData(export, name, kw.getKey(), kw.getValue());
+            keywords.add(keyword);
+            keywordLookup.put(kw.getKey(),keyword);
+            //}
         }
         for (Map.Entry<String,String> kw : GameDictionary.parentWord.entrySet()) {
             String parent = kw.getValue();

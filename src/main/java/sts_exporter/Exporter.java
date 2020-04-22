@@ -34,7 +34,7 @@ public class Exporter implements PostInitializeSubscriber {
     public Exporter() {
         // config
         try {
-            config = new SpireConfig("Exporter", "config");
+            config = new SpireConfig("Exporter+", "config");
         } catch (IOException e) {
             e.printStackTrace();
         }

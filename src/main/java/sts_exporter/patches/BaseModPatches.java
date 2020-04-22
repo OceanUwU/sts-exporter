@@ -7,7 +7,7 @@ import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import basemod.BaseMod;
 
 public class BaseModPatches {
-    public static HashMap<String,String> keywordClasses = new HashMap<>();
+    public static HashMap<String, String> keywordClasses = new HashMap<>();
 
     @SpirePatch(clz = BaseMod.class, method="addKeyword", paramtypez={String.class, String.class, String[].class, String.class})
     public static class AddKeyword {

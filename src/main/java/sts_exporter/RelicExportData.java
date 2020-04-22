@@ -220,6 +220,7 @@ class RelicExportData implements Comparable<RelicExportData> {
         boolean wordStart = true;
         int wordTags = 0; // number of tags that close at the end of the word
         int openTags = 0;
+
         for (int pos = 0; pos < string.length();) {
             char c = string.charAt(pos);
             if (c == ' ') {

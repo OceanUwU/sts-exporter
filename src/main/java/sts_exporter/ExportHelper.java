@@ -32,7 +32,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.NotFoundException;
 
-class ExportHelper {
+public class ExportHelper {
     ExportHelper(SpireConfig config) {
         this.dir = config.getString(Exporter.CONFIG_EXPORT_DIR);
         this.include_basegame = config.getBool(Exporter.CONFIG_INCLUDE_BASE_GAME);
@@ -57,8 +57,10 @@ class ExportHelper {
         RelicExportData.exportAllRelics(this);
         CreatureExportData.exportAllCreatures(this);
         PotionExportData.exportAllPotions(this);
+        //this.keywords =
+        KeywordExportData.exportAllKeywords(this);
         this.colors = ColorExportData.exportAllColors(this);
-        this.keywords = KeywordExportData.exportAllKeywords(this);
+
         // collect only from included mods
         for (ModExportData mod : this.mods) {
             if (modIncludedInExport(mod)) {
@@ -66,6 +68,7 @@ class ExportHelper {
                 relics.addAll(mod.relics);
                 creatures.addAll(mod.creatures);
                 potions.addAll(mod.potions);
+                keywords.addAll(mod.keywords);
                 // sort
                 Collections.sort(mod.cards);
                 Collections.sort(mod.relics);
@@ -77,6 +80,7 @@ class ExportHelper {
         Collections.sort(this.relics);
         Collections.sort(this.creatures);
         Collections.sort(this.potions);
+        Collections.sort(this.keywords);
         // per color items
         for (CardExportData c : this.cards) {
             findColor(c.card.color).cards.add(c);
@@ -224,8 +228,7 @@ class ExportHelper {
     }
 
     private static ArrayList<CardExportData> withUpgrades(ArrayList<CardExportData> cards) {
-        ArrayList<CardExportData> all = new ArrayList<>();
-        all.addAll(cards);
+        ArrayList<CardExportData> all = new ArrayList<>(cards);
         for (CardExportData card : cards) {
             if (card.upgrade != null) all.add(card.upgrade);
         }
@@ -307,7 +310,7 @@ class ExportHelper {
             .and()
             .escape()
                 .engines()
-                    .add("json", (input) -> StringEscapeUtils.escapeJava(input)) // close enough
+                    .add("json", StringEscapeUtils::escapeJava) // close enough
                 .and()
             .and()
         .build();

@@ -1,14 +1,17 @@
 package sts_exporter;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Scanner;
+import java.util.*;
 
+import basemod.BaseMod;
+import basemod.abstracts.DynamicVariable;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.evacipated.cardcrawl.mod.stslib.cards.interfaces.BranchingUpgradesCard;
+import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
 import com.megacrit.cardcrawl.core.Settings;
@@ -18,10 +21,12 @@ import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
 
 import basemod.ReflectionHacks;
+import sts_exporter.optional.BranchingExport;
 
 public class CardExportData implements Comparable<CardExportData> {
     public AbstractCard card;
     public CardExportData upgrade;
+    public CardExportData altUpgrade;
     public String name;
     public String color;
     public String rarity;
@@ -29,14 +34,17 @@ public class CardExportData implements Comparable<CardExportData> {
     public ExportPath image, smallImage;
     public String cost, costAndUpgrade;
     public String text, textAndUpgrade, textWikiData, textWikiFormat;
-    public int block, damage, magicNumber;
+
+    public Map<String, Integer> variableValues;
+    //public int block, damage, magicNumber;
+
     public ModExportData mod;
 
     public CardExportData(ExportHelper export, AbstractCard card) {
-        this(export, card, true);
+        this(export, card, 0);
     }
 
-    public CardExportData(ExportHelper export, AbstractCard card, boolean exportUpgrade) {
+    public CardExportData(ExportHelper export, AbstractCard card, int upgradeCount) {
         card.initializeDescription();
         this.card = card;
         this.name = card.name;
@@ -47,12 +55,17 @@ public class CardExportData implements Comparable<CardExportData> {
         if (!card.upgraded) {
             this.mod.cards.add(this);
         }
-        if (exportUpgrade && !card.upgraded && card.canUpgrade()) {
-            AbstractCard copy = card.makeCopy();
-            copy.upgrade();
-            copy.displayUpgrades();
-            this.upgrade = new CardExportData(export, copy, false);
+
+        if (upgradeCount < 9 && !card.upgraded && card.canUpgrade()) {
+            if (!Loader.isModLoaded("stslib") || !BranchingExport.testAndExport(export, card, this, upgradeCount))
+            {
+                AbstractCard copy = card.makeCopy();
+                copy.upgrade();
+                copy.displayUpgrades();
+                this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
+            }
         }
+
         // cost
         if (card.cost == -1) {
             this.cost = "X";
@@ -62,37 +75,137 @@ public class CardExportData implements Comparable<CardExportData> {
             this.cost = String.valueOf(card.cost);
         }
         this.costAndUpgrade = combineUpgrade(cost, upgrade == null ? null : upgrade.cost, TextMode.NORMAL_MODE);
+
         // description
-        this.block = card.isBlockModified ? card.block : card.baseBlock;
-        this.damage = card.isDamageModified ? card.damage : card.baseDamage;
-        this.magicNumber = card.isMagicNumberModified ? card.magicNumber : card.baseMagicNumber;
-        this.text = card.rawDescription
-                        .replace("!B!", String.valueOf(block))
-                        .replace("!D!", String.valueOf(damage))
-                        .replace("!M!", String.valueOf(magicNumber))
-                        .replace(" NL ", "\n");
+        variableValues = new HashMap<>();
+        readVariableValues(card);
+
+        text = processDescription(card.rawDescription);
+
         if (upgrade == null) {
             this.textAndUpgrade = this.text;
         } else {
-            this.textAndUpgrade = combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.NORMAL_MODE)
-                            .replace("!B!", combineUpgrade(String.valueOf(block), String.valueOf(upgrade.block), TextMode.NORMAL_MODE))
-                            .replace("!D!", combineUpgrade(String.valueOf(damage), String.valueOf(upgrade.damage), TextMode.NORMAL_MODE))
-                            .replace("!M!", combineUpgrade(String.valueOf(magicNumber), String.valueOf(upgrade.magicNumber), TextMode.NORMAL_MODE))
-                            .replace(" NL ", "\n");
-            this.textWikiData = combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_DATA)
-                            .replace("!B!", combineUpgrade(String.valueOf(block), String.valueOf(upgrade.block), TextMode.WIKI_DATA))
-                            .replace("!D!", combineUpgrade(String.valueOf(damage), String.valueOf(upgrade.damage), TextMode.WIKI_DATA))
-                            .replace("!M!", combineUpgrade(String.valueOf(magicNumber), String.valueOf(upgrade.magicNumber), TextMode.WIKI_DATA))
-                            .replace(" NL ", "\n");
-            this.textWikiFormat = combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_FORMAT)
-                            .replace("!B!", combineUpgrade(String.valueOf(block), String.valueOf(upgrade.block), TextMode.WIKI_FORMAT))
-                            .replace("!D!", combineUpgrade(String.valueOf(damage), String.valueOf(upgrade.damage), TextMode.WIKI_FORMAT))
-                            .replace("!M!", combineUpgrade(String.valueOf(magicNumber), String.valueOf(upgrade.magicNumber), TextMode.WIKI_FORMAT))
-                            .replace(" NL ", "\n");
+            this.textAndUpgrade = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.NORMAL_MODE), TextMode.NORMAL_MODE);
+            this.textWikiData = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_DATA), TextMode.WIKI_DATA);
+            this.textWikiFormat = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_FORMAT), TextMode.WIKI_FORMAT);
         }
         // image
         this.image = export.exportPath(this.mod, "card-images", this.name, ".png");
         this.smallImage = export.exportPath(this.mod, "small-card-images", this.name, ".png");
+    }
+
+    private void readVariableValues(AbstractCard c)
+    {
+        String[] words = card.rawDescription.split(" ");
+
+        for (String word : words)
+        {
+            int end = -1;
+            if (word.startsWith("!") && (end = word.indexOf("!", 2)) >= 0)
+            {
+                String key = word.substring(1, end);
+
+                switch (key)
+                {
+                    case "B":
+                        variableValues.put(key, card.isBlockModified ? card.block : card.baseBlock);
+                        break;
+                    case "D":
+                        variableValues.put(key, card.isDamageModified ? card.damage : card.baseDamage);
+                        break;
+                    case "M":
+                        variableValues.put(key, card.isMagicNumberModified ? card.magicNumber : card.baseMagicNumber);
+                        break;
+                    default:
+                        DynamicVariable dv = BaseMod.cardDynamicVariableMap.get(key);
+                        if (dv != null) {
+                            variableValues.put(key, dv.isModified(card) ? dv.value(card) : dv.baseValue(card));
+                        }
+                }
+            }
+        }
+    }
+
+    private String processDescription(String description)
+    {
+        String result = description.replace(" NL ", "\n");
+
+        for (Map.Entry<String, Integer> variable : variableValues.entrySet())
+        {
+            result = result.replace("!" + variable.getKey() + "!", variable.getValue().toString());
+        }
+
+        boolean colored;
+        do
+        {
+            colored = false;
+
+            int start = result.indexOf("[");
+            if (result.length() > start + 8 && result.charAt(start + 1) == '#' && result.charAt(start + 8) == ']')
+            {
+                colored = true;
+
+                result = (start > 0 ? result.substring(0, start) : "") + result.substring(start + 9);
+
+                result = result.replace("[]", "");
+            }
+        } while (colored);
+
+        return result;
+    }
+
+    private String processCombinedDescription(String description, TextMode textMode)
+    {
+        String result = description.replace(" NL ", "\n");
+
+        for (Map.Entry<String, Integer> variable : variableValues.entrySet())
+        {
+            result = result.replace("!" + variable.getKey() + "!", combineUpgrade(variable.getValue().toString(), upgrade.variableValues.get(variable.getKey()).toString(), textMode));
+        }
+        for (Map.Entry<String, Integer> variable : upgrade.variableValues.entrySet())
+        {
+            result = result.replace("!" + variable.getKey() + "!", combineUpgrade(variable.getValue().toString(), upgrade.variableValues.get(variable.getKey()).toString(), textMode));
+        }
+
+        boolean colored;
+        do
+        {
+            colored = false;
+
+            int start = result.indexOf("[");
+            if (result.length() > start + 8 && result.charAt(start + 1) == '#' && result.charAt(start + 8) == ']')
+            {
+                colored = true;
+
+                String code = result.substring(start + 1, start + 8);
+
+                result = (start > 0 ? result.substring(0, start) : "") + (textMode == TextMode.NORMAL_MODE ? "<span style=\"color:" + code + "\">" : "") + result.substring(start + 9);
+
+                if (textMode == TextMode.NORMAL_MODE)
+                {
+                    int braces = result.indexOf("[]");
+                    int nextSpace = result.indexOf(' ', start + 28);
+                    if (nextSpace >= 0 && nextSpace < braces)
+                    {
+                        result = result.substring(0, nextSpace) + "</span>" + result.substring(nextSpace);
+                    }
+                    else if (braces >= 0)
+                    {
+                        result = result.replaceFirst("\\[]", "</span>");
+                    }
+                    else
+                    {
+                        result += "</span>";
+                    }
+                }
+                else
+                {
+                    result = result.replaceFirst("\\[]", "");
+                }
+            }
+        } while (colored);
+
+        return result;
     }
 
     public void exportImages() {
@@ -230,10 +343,10 @@ public class CardExportData implements Comparable<CardExportData> {
 
     private static String combineUpgrade(String a, String b, TextMode mode) {
         if (b == null || b.equals(a)) return a;
-        switch(mode) {
-            default:        return a + "(" + b + ")";
-            case WIKI_DATA: return "[" + a + "|" + b + "]";
+        if (mode == TextMode.WIKI_DATA) {
+            return "[" + a + "|" + b + "]";
         }
+        return a + " (" + b + ")";
     }
 
     private static String combineDescriptions(String a, String b, TextMode mode) {
@@ -274,7 +387,6 @@ public class CardExportData implements Comparable<CardExportData> {
                 words.add(bwords.get(bi-1));
                 source.add('b');
                 bi--;
-                continue;
             } else if (acost <= replacecost) {
                 words.add(awords.get(ai-1));
                 source.add('a');
@@ -348,19 +460,20 @@ public class CardExportData implements Comparable<CardExportData> {
             if (prev == 'a') out.append("|");
         }
         // Join and remove unnecesary spaces
+        String replace = out.toString().replace(" .", ".").replace(" ,", ",");
         if (mode == TextMode.WIKI_DATA) {
-            return out.toString().replace(" .",".").replace(" ,",",").replace(" ]","]").replace("[ ","[").replace(" NL]"," NL ]").replace("[NL ","[ NL ").replace(" NL|"," NL |").replace("|NL ","| NL ");
+            return replace.replace(" ]","]").replace("[ ","[").replace(" NL]"," NL ]").replace("[NL ","[ NL ").replace(" NL|"," NL |").replace("|NL ","| NL ");
         } else {
-            return out.toString().replace(" .",".").replace(" ,",",").replace(" )",")").replace("( ","(").replace(" NL)",") NL ").replace("(NL "," NL (");
+            return replace.replace(" )",")").replace("( ","(").replace(" NL)",") NL ").replace("(NL "," NL (");
         }
     }
 
     private static String preprocessText(String a, TextMode mode) {
         a = a.replace("."," .").replace(","," ,");
         if (mode == TextMode.WIKI_DATA) {
-            a = a.replace("[R]","<R>").replace("[G]","<G>").replace("[B]","<B>");
+            a = a.replace("[R]","<R>").replace("[G]","<G>").replace("[B]","<B>").replace("[W}", "<W>");
         } else if(mode == TextMode.WIKI_FORMAT) {
-            final String[] energySymbols = {"[R] [R] [R]","[R] [R]","[R]", "[G] [G] [G]","[G] [G]","[G]", "[B] [B] [B]","[B] [B]","[B]"};
+            final String[] energySymbols = {"[R] [R] [R]","[R] [R]","[R]", "[G] [G] [G]","[G] [G]","[G]", "[B] [B] [B]","[B] [B]","[B]","[W] [W] [W]","[W] [W]","[W]"};
             for (String e : energySymbols) {
                 a = a.replace(e, (e.length()+1)/4 + " Energy");
             }
@@ -382,10 +495,13 @@ public class CardExportData implements Comparable<CardExportData> {
     private static final String formatKeyword(String w, TextMode mode) {
         if (GameDictionary.keywords.containsKey(w.toLowerCase()) || w.toLowerCase().equals("energy")) {
             // keyword
+
+            String keyword = BaseMod.keywordIsUnique(w) ? BaseMod.getKeywordUnique(w) : w;
+
             if (mode == TextMode.WIKI_FORMAT) {
-                return "[[" + w + "]]";
+                return "[[" + keyword + "]]";
             } else if (mode == TextMode.WIKI_DATA) {
-                return "#" + w;
+                return "#" + keyword;
             }
         }
         return w;

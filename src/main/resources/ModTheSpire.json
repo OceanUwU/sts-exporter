@@ -1,11 +1,11 @@
 {
-  "modid": "StSExporter",
-  "name": "Spire Exporter",
-  "author_list": ["twanvl"],
-  "description": "Exports card images, relics, potions, creatures and other data to HTML and Markdown.",
-  "version": "0.4.5",
-  "sts_version": "01-16-2020",
-  "mts_version": "3.0.0",
+  "modid": "${project.artifactId}",
+  "name": "${project.name}",
+  "author_list": ["twanvl","Alchyr"],
+  "description": "${project.description}",
+  "version": "${project.version}",
+  "sts_version": "${SlayTheSpire.version}",
+  "mts_version": "${ModTheSpire.version}",
   "dependencies": ["basemod"],
-  "update_json": "https://api.github.com/repos/twanvl/sts-exporter/releases/latest"
+  "update_json": ""
 }
