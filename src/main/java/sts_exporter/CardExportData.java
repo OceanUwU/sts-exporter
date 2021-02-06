@@ -5,6 +5,7 @@ import java.util.*;
 
 import basemod.BaseMod;
 import basemod.abstracts.DynamicVariable;
+import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.CardModifierPatches;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -35,6 +36,8 @@ public class CardExportData implements Comparable<CardExportData> {
     public String cost, costAndUpgrade;
     public String text, textAndUpgrade, textWikiData, textWikiFormat;
 
+    private String finalRawDescription;
+
     public Map<String, Integer> variableValues;
     //public int block, damage, magicNumber;
 
@@ -56,10 +59,10 @@ public class CardExportData implements Comparable<CardExportData> {
             this.mod.cards.add(this);
         }
 
-        if (upgradeCount < 9 && !card.upgraded && card.canUpgrade()) {
+        if (upgradeCount < 9 && card.canUpgrade()) {
             if (!Loader.isModLoaded("stslib") || !BranchingExport.testAndExport(export, card, this, upgradeCount))
             {
-                AbstractCard copy = card.makeCopy();
+                AbstractCard copy = card.makeStatEquivalentCopy();
                 copy.upgrade();
                 copy.displayUpgrades();
                 this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
@@ -77,30 +80,33 @@ public class CardExportData implements Comparable<CardExportData> {
         this.costAndUpgrade = combineUpgrade(cost, upgrade == null ? null : upgrade.cost, TextMode.NORMAL_MODE);
 
         // description
-        variableValues = new HashMap<>();
-        readVariableValues(card);
+        this.finalRawDescription = CardModifierPatches.CardModifierOnCreateDescription.calculateRawDescription(card, card.rawDescription);
 
-        text = processDescription(card.rawDescription);
+        variableValues = new HashMap<>();
+        readVariableValues();
+
+        text = processDescription(finalRawDescription);
 
         if (upgrade == null) {
             this.textAndUpgrade = this.text;
         } else {
-            this.textAndUpgrade = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.NORMAL_MODE), TextMode.NORMAL_MODE);
-            this.textWikiData = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_DATA), TextMode.WIKI_DATA);
-            this.textWikiFormat = processCombinedDescription(combineDescriptions(card.rawDescription, upgrade.card.rawDescription, TextMode.WIKI_FORMAT), TextMode.WIKI_FORMAT);
+            this.textAndUpgrade = processCombinedDescription(combineDescriptions(finalRawDescription, upgrade.finalRawDescription, TextMode.NORMAL_MODE), TextMode.NORMAL_MODE);
+            this.textWikiData = processCombinedDescription(combineDescriptions(finalRawDescription, upgrade.finalRawDescription, TextMode.WIKI_DATA), TextMode.WIKI_DATA);
+            this.textWikiFormat = processCombinedDescription(combineDescriptions(finalRawDescription, upgrade.finalRawDescription, TextMode.WIKI_FORMAT), TextMode.WIKI_FORMAT);
         }
         // image
         this.image = export.exportPath(this.mod, "card-images", this.name, ".png");
         this.smallImage = export.exportPath(this.mod, "small-card-images", this.name, ".png");
     }
 
-    private void readVariableValues(AbstractCard c)
+    private void readVariableValues()
     {
-        String[] words = card.rawDescription.split(" ");
+
+        String[] words = finalRawDescription.split(" ");
 
         for (String word : words)
         {
-            int end = -1;
+            int end;
             if (word.startsWith("!") && (end = word.indexOf("!", 2)) >= 0)
             {
                 String key = word.substring(1, end);
@@ -129,6 +135,8 @@ public class CardExportData implements Comparable<CardExportData> {
     private String processDescription(String description)
     {
         String result = description.replace(" NL ", "\n");
+        result = result.replace(" *", " ");
+        result = result.replace("\n*", "\n");
 
         for (Map.Entry<String, Integer> variable : variableValues.entrySet())
         {
@@ -157,14 +165,13 @@ public class CardExportData implements Comparable<CardExportData> {
     private String processCombinedDescription(String description, TextMode textMode)
     {
         String result = description.replace(" NL ", "\n");
+        result = result.replace(" *", " ");
+        result = result.replace("\n*", "\n");
 
         for (Map.Entry<String, Integer> variable : variableValues.entrySet())
         {
-            result = result.replace("!" + variable.getKey() + "!", combineUpgrade(variable.getValue().toString(), upgrade.variableValues.get(variable.getKey()).toString(), textMode));
-        }
-        for (Map.Entry<String, Integer> variable : upgrade.variableValues.entrySet())
-        {
-            result = result.replace("!" + variable.getKey() + "!", combineUpgrade(variable.getValue().toString(), upgrade.variableValues.get(variable.getKey()).toString(), textMode));
+            Integer upgradeValue = upgrade.variableValues.get(variable.getKey());
+            result = result.replace("!" + variable.getKey() + "!", combineUpgrade(variable.getValue().toString(), upgradeValue == null ? null : upgradeValue.toString(), textMode));
         }
 
         boolean colored;

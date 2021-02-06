@@ -229,9 +229,27 @@ public class ExportHelper {
 
     private static ArrayList<CardExportData> withUpgrades(ArrayList<CardExportData> cards) {
         ArrayList<CardExportData> all = new ArrayList<>(cards);
-        for (CardExportData card : cards) {
-            if (card.upgrade != null) all.add(card.upgrade);
+        ArrayList<CardExportData> temp = new ArrayList<>(cards);
+        ArrayList<CardExportData> upgrades = new ArrayList<>();
+
+        while (!temp.isEmpty()) {
+            for (CardExportData card : temp) {
+                if (card.upgrade != null)
+                {
+                    all.add(card.upgrade);
+                    upgrades.add(card.upgrade);
+                }
+                if (card.altUpgrade != null)
+                {
+                    all.add(card.altUpgrade);
+                    upgrades.add(card.altUpgrade);
+                }
+            }
+
+            temp = new ArrayList<>(upgrades);
+            upgrades.clear();
         }
+
         Collections.sort(all);
         return all;
     }

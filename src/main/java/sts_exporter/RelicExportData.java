@@ -270,17 +270,24 @@ class RelicExportData implements Comparable<RelicExportData> {
                 out.append(c);
                 pos += 2;
             } else if (markup && c == '[' && pos + 1 < string.length()) {
-                if (space) {
-                    out.append(' ');
-                    space = false;
-                }
                 int end = string.indexOf(']',pos);
                 if (end == -1 || (end == pos+1 && openTags == 0) || (end == pos+2)) {
                     // no closing bracket, or an energy orb like [R]
                     wordStart = false;
+
+                    if (space) {
+                        out.append(' ');
+                        space = false;
+                    }
+
                     out.append(c);
                     pos++;
                 } else if (end == pos+1) {
+                    if (space) {
+                        out.append(' ');
+                        space = false;
+                    }
+
                     if (openTags > 0) {
                         if (wordTags > 0) wordTags--;
                         openTags--;
@@ -288,12 +295,27 @@ class RelicExportData implements Comparable<RelicExportData> {
                     }
                     pos = end + 1;
                 } else {
-                    String colorName = string.substring(pos+1,end);
+                    String colorName = string.substring(pos+1, end);
                     if (colorName.charAt(0) != '#' && Colors.get(colorName) == null) {
                         // not a valid color, ignore
                         wordStart = false;
-                        out.append(c);
-                        pos++;
+
+                        if (colorName.equals("REMOVE_SPACE"))
+                        {
+                            space = false;
+
+                            pos = end + 1;
+                        }
+                        else
+                        {
+                            if (space) {
+                                out.append(' ');
+                                space = false;
+                            }
+
+                            out.append(c);
+                            pos++;
+                        }
                     } else {
                         if (html) {
                             out.append("<span style=\"color:");
