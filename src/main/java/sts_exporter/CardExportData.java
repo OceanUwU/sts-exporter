@@ -2,10 +2,15 @@ package sts_exporter;
 
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import basemod.BaseMod;
 import basemod.abstracts.DynamicVariable;
 import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.CardModifierPatches;
+import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.DynamicTextBlocks;
+import basemod.patches.com.megacrit.cardcrawl.screens.compendium.CardLibraryScreen.EverythingFix;
+import basemod.patches.com.megacrit.cardcrawl.screens.compendium.CardLibraryScreen.NoLibraryType;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
@@ -83,7 +88,7 @@ public class CardExportData implements Comparable<CardExportData> {
         this.finalRawDescription = CardModifierPatches.CardModifierOnCreateDescription.calculateRawDescription(card, card.rawDescription);
 
         variableValues = new HashMap<>();
-        readVariableValues();
+        finalRawDescription = preProcessDescription(finalRawDescription);
 
         text = processDescription(finalRawDescription);
 
@@ -95,14 +100,27 @@ public class CardExportData implements Comparable<CardExportData> {
             this.textWikiFormat = processCombinedDescription(combineDescriptions(finalRawDescription, upgrade.finalRawDescription, TextMode.WIKI_FORMAT), TextMode.WIKI_FORMAT);
         }
         // image
-        this.image = export.exportPath(this.mod, "card-images", this.name, ".png");
-        this.smallImage = export.exportPath(this.mod, "small-card-images", this.name, ".png");
+        String imgFile = makeImageFilename();
+        this.image = export.exportPath(this.mod, "card-images", imgFile, ".png");
+        this.smallImage = export.exportPath(this.mod, "small-card-images", imgFile, ".png");
     }
 
-    private void readVariableValues()
-    {
+    private static final String DYNAMIC_KEY = "{@@}";
+    private static final Pattern PATTERN = Pattern.compile("\\{!.*?!\\|.*?}");
 
-        String[] words = finalRawDescription.split(" ");
+    private String preProcessDescription(String description)
+    {
+        if (description.contains(DYNAMIC_KEY)) {
+            Matcher m = PATTERN.matcher(description.replace(DYNAMIC_KEY,""));
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                m.appendReplacement(sb, DynamicTextBlocks.unwrap(card, m.group()));
+            }
+            m.appendTail(sb);
+            description = sb.toString();
+        }
+
+        String[] words = description.split(" ");
 
         for (String word : words)
         {
@@ -130,6 +148,8 @@ public class CardExportData implements Comparable<CardExportData> {
                 }
             }
         }
+
+        return description;
     }
 
     private String processDescription(String description)
@@ -514,6 +534,15 @@ public class CardExportData implements Comparable<CardExportData> {
         return w;
     }
 
+    private String makeImageFilename() {
+        String colorString = color, nameString = name;
+        if (colorString.length() > 10)
+            colorString = colorString.substring(0, 10);
+        if (nameString.length() > 50) //wtf you doing with a 50 letter card name
+            nameString = nameString.substring(0, 50);
+        return colorString + "-" + nameString;
+    }
+
     private static final ArrayList<String> words(String str) {
         Scanner scanner = new Scanner(str);
         ArrayList<String> out = new ArrayList<>();
@@ -527,9 +556,24 @@ public class CardExportData implements Comparable<CardExportData> {
     public static ArrayList<CardExportData> exportAllCards(ExportHelper export) {
         ArrayList<CardExportData> cards = new ArrayList<>();
         for (AbstractCard.CardColor color : AbstractCard.CardColor.values()) {
-            ArrayList<AbstractCard> cardLibrary = CardLibrary.getCardList(CardLibrary.LibraryType.valueOf(color.name()));
-            for (AbstractCard c : cardLibrary) {
-                cards.add(new CardExportData(export, c.makeCopy()));
+            try {
+                try {
+                    ArrayList<AbstractCard> cardLibrary = CardLibrary.getCardList(CardLibrary.LibraryType.valueOf(color.name()));
+                    for (AbstractCard c : cardLibrary) {
+                        cards.add(new CardExportData(export, c.makeCopy()));
+                    }
+                } catch (IllegalArgumentException e1) {
+                    NoLibraryType annotation = color.getClass().getField(color.name()).getAnnotation(NoLibraryType.class);
+                    if (annotation == null) {
+                        e1.printStackTrace();
+                    }
+                    else {
+                        System.out.println("Skipped no-library color " + color.name());
+                    }
+                }
+            }
+            catch (Exception e2) {
+                e2.printStackTrace();
             }
         }
         Collections.sort(cards);

@@ -27,7 +27,7 @@ class PotionExportData implements Comparable<PotionExportData> {
         this.descriptionHTML = RelicExportData.smartTextToHTML(potion.description,true,true);
         this.descriptionPlain = RelicExportData.smartTextToPlain(potion.description,true,true);
         this.rarity = Exporter.rarityName(potion.rarity);
-        this.playerClass = playerClass == null ? "" : playerClass.toString();
+        this.playerClass = cls == null ? "" : cls.toString();
         this.image = export.exportPath(this.mod, "potions", this.name, ".png");
     }
 

@@ -1,9 +1,6 @@
 package sts_exporter;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import basemod.BaseMod;
 import com.megacrit.cardcrawl.helpers.GameDictionary;
@@ -28,10 +25,12 @@ class KeywordExportData implements Comparable<KeywordExportData> {
     public static ArrayList<KeywordExportData> exportAllKeywords(ExportHelper export) {
         ArrayList<KeywordExportData> keywords = new ArrayList<>();
         HashMap<String, KeywordExportData> keywordLookup = new HashMap<>();
-        for (Map.Entry<String, String> kw : GameDictionary.keywords.entrySet()) {
-            String parent = GameDictionary.parentWord.get(kw.getKey());
+        HashSet<String> parents = new HashSet<>();
 
+        for (Map.Entry<String, String> kw : GameDictionary.keywords.entrySet()) {
             String name = kw.getKey();
+            String parent = GameDictionary.parentWord.get(name);
+
             if (parent != null)
             {
                 String proper = BaseMod.getKeywordProper(parent);
@@ -39,15 +38,24 @@ class KeywordExportData implements Comparable<KeywordExportData> {
                     name = proper;
             }
 
-            //if (parent == null || parent.equals(kw.getKey())) {
-            KeywordExportData keyword = new KeywordExportData(export, name, kw.getKey(), kw.getValue());
-            keywords.add(keyword);
-            keywordLookup.put(kw.getKey(),keyword);
-            //}
-        }
-        for (Map.Entry<String,String> kw : GameDictionary.parentWord.entrySet()) {
-            String parent = kw.getValue();
-            keywordLookup.get(parent).names.add(kw.getKey());
+            if (parent != null && !parents.contains(parent)) {
+                KeywordExportData keyword = new KeywordExportData(export, name, parent, kw.getValue());
+                keywords.add(keyword);
+                keywordLookup.put(parent, keyword);
+                parents.add(parent);
+
+                if (!kw.getKey().equals(parent)) {
+                    keywordLookup.get(parent).names.add(kw.getKey());
+                }
+            }
+            else if (parent != null) {
+                keywordLookup.get(parent).names.add(kw.getKey());
+            }
+            else {
+                KeywordExportData keyword = new KeywordExportData(export, name, kw.getKey(), kw.getValue());
+                keywords.add(keyword);
+                keywordLookup.put(kw.getKey(), keyword);
+            }
         }
         Collections.sort(keywords);
         return keywords;

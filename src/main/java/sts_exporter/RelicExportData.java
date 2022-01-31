@@ -215,6 +215,9 @@ class RelicExportData implements Comparable<RelicExportData> {
     // @param html HTML or plain text output
     public static String parseSmartText(String string, boolean smart, boolean markup, boolean html) {
         if (string == null) return "";
+
+        string = string.replaceAll(" \\[REMOVE_SPACE]", "");
+
         StringBuilder out = new StringBuilder();
         boolean space = false; // should we insert a space?
         boolean wordStart = true;

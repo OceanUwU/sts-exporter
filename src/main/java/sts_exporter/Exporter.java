@@ -101,6 +101,7 @@ public class Exporter implements PostInitializeSubscriber {
             export.exportAll();
         } catch (Exception e) {
             logger.error("Error during export", e);
+            
         }
         // Restore scale
         Settings.scale = oldScale;
