@@ -13,6 +13,7 @@
   },{% endif %}
   "cards": [{% for card in cardsAndUpgrades %}
     {
+      "id": "{{ card.id | escape('json') }}",
       "name": "{{ card.name | escape('json') }}",
       "color": "{{ card.color | escape('json') }}",
       "rarity": "{{ card.rarity | escape('json') }}",
@@ -24,6 +25,7 @@
   ],
   "relics": [{% for relic in relics %}
     {
+      "id": "{{ relic.id | escape('json') }}",
       "name": "{{ relic.name | escape('json') }}",
       "tier": "{{ relic.tier | escape('json') }}",
       "pool": "{{ relic.pool | escape('json') }}",
@@ -34,6 +36,7 @@
   ],
   "potions": [{% for potion in potions %}
     {
+      "id": "{{ potion.id | escape('json') }}",
       "name": "{{ potion.name | escape('json') }}",
       "rarity": "{{ potion.rarity | escape('json') }}",
       "description": "{{ potion.descriptionPlain | escape('json') }}"{% if listmod %},
@@ -42,6 +45,7 @@
   ],
   "creatures": [{% for creature in creatures %}
     {
+      "id": "{{ creature.id | escape('json') }}",
       "name": "{{ creature.name | escape('json') }}",
       "type": "{{ creature.type | escape('json') }}",
       "minHP": "{{ creature.minHP | escape('json') }}",

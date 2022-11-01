@@ -32,6 +32,7 @@ class RelicExportData implements Comparable<RelicExportData> {
     public ExportPath image;
     public ExportPath popupImage;
     public ExportPath smallPopupImage;
+    public String id;
     public String name;
     public String description, descriptionHTML, descriptionPlain;
     public String flavorText, flavorTextHTML, flavorTextPlain;
@@ -40,6 +41,7 @@ class RelicExportData implements Comparable<RelicExportData> {
         this.relic = relic;
         this.mod = export.findMod(relic.getClass());
         this.mod.relics.add(this);
+        this.id = relic.relicId;
         this.name = relic.name;
         this.description = relic.description;
         this.descriptionHTML = smartTextToHTML(relic.description,true,true);

@@ -33,6 +33,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public AbstractCard card;
     public CardExportData upgrade;
     public CardExportData altUpgrade;
+    public String id;
     public String name;
     public String color;
     public String rarity;
@@ -55,6 +56,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public CardExportData(ExportHelper export, AbstractCard card, int upgradeCount) {
         card.initializeDescription();
         this.card = card;
+        this.id = card.cardID;
         this.name = card.name;
         this.rarity = Exporter.rarityName(card.rarity);
         this.color = Exporter.colorName(card.color);

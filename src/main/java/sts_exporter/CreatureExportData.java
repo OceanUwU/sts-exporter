@@ -32,6 +32,7 @@ import basemod.ReflectionHacks;
 public class CreatureExportData implements Comparable<CreatureExportData> {
     public AbstractCreature creature;
     public ExportPath image;
+    public String id;
     public String name;
     public String type;
     public int minHP, maxHP;
@@ -43,6 +44,7 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
 
     public CreatureExportData(ExportHelper export, AbstractCreature creature) {
         this.creature = creature;
+        this.id = creature.id;
         this.name = creature.name;
         this.mod = export.findMod(creature.getClass());
         this.mod.creatures.add(this);
