@@ -25,6 +25,7 @@ import com.megacrit.cardcrawl.helpers.CardLibrary;
 import com.megacrit.cardcrawl.helpers.GameDictionary;
 import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
+import thePackmaster.cards.AbstractPackmasterCard;
 
 import basemod.ReflectionHacks;
 import sts_exporter.optional.BranchingExport;
@@ -38,6 +39,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public String color;
     public String rarity;
     public String type;
+    public String pack;
     public ExportPath image, smallImage;
     public String cost, costAndUpgrade;
     public String text, textAndUpgrade, textWikiData, textWikiFormat;
@@ -64,6 +66,9 @@ public class CardExportData implements Comparable<CardExportData> {
         this.mod = export.findMod(card.getClass());
         if (!card.upgraded) {
             this.mod.cards.add(this);
+        }
+        if (Loader.isModLoaded("anniv5") && card instanceof AbstractPackmasterCard) {
+            this.pack = ((AbstractPackmasterCard)card).getTopText();
         }
 
         if (upgradeCount < 9 && card.canUpgrade()) {
@@ -243,6 +248,9 @@ public class CardExportData implements Comparable<CardExportData> {
         exportImageToFile();
         if (upgrade != null) {
             upgrade.exportImages();
+        }
+        if (altUpgrade != null) {
+            altUpgrade.exportImages();
         }
     }
 

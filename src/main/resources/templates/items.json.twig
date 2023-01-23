@@ -20,7 +20,8 @@
       "type": "{{ card.type | escape('json') }}",
       "cost": "{{ card.cost | escape('json') }}",
       "description": "{{ card.text | escape('json') }}"{% if listmod %},
-      "mod": "{{ card.mod.modName | escape('json') }}"{% endif %}
+      "mod": "{{ card.mod.modName | escape('json') }}"{% endif %}{% if (card.pack is defined) and (card.pack is not null) %},
+      "pack": "{{ card.pack | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
   ],
   "relics": [{% for relic in relics %}
