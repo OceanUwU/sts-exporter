@@ -129,7 +129,7 @@ public class ExportHelper {
     }
 
     String exportDir(ModExportData mod) {
-        return dir + "/" + mod.id;
+        return dir + "/" + mod.id.replace(":", "");
     }
     String exportDir(ColorExportData color) {
         return dir + "/colors/" + color.id;
