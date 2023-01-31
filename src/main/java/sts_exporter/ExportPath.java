@@ -9,6 +9,7 @@ class ExportPath {
     public String file; // filename
 
     ExportPath(String base, String modDir, String dir, String file) {
+        modDir = modDir.replace(":", "");
         this.relativeToMod = dir == null ? file : dir + "/" + file;
         this.relative = modDir == null ? this.relativeToMod : modDir + "/" + this.relativeToMod;
         this.absolute = base + "/" + relative;
