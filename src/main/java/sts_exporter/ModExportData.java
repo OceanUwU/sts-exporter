@@ -16,6 +16,7 @@ class ModExportData {
     public URL url;
     public ArrayList<CardExportData> cards = new ArrayList<>();
     public ArrayList<RelicExportData> relics = new ArrayList<>();
+    public ArrayList<BlightExportData> blights = new ArrayList<>();
     public ArrayList<CreatureExportData> creatures = new ArrayList<>();
     public ArrayList<PotionExportData> potions = new ArrayList<>();
     public ArrayList<KeywordExportData> keywords = new ArrayList<>();
@@ -44,6 +45,7 @@ class ModExportData {
     public void exportImages() {
         for (CardExportData x : this.cards) x.exportImages();
         for (RelicExportData x : this.relics) x.exportImages();
+        for (BlightExportData x : this.blights) x.exportImages();
         for (CreatureExportData x : this.creatures) x.exportImages();
         for (PotionExportData x : this.potions) x.exportImages();
     }

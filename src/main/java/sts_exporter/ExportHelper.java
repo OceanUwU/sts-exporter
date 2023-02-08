@@ -55,6 +55,7 @@ public class ExportHelper {
         Exporter.logger.info("Collecting items");
         CardExportData.exportAllCards(this);
         RelicExportData.exportAllRelics(this);
+        BlightExportData.exportAllBlights(this);
         CreatureExportData.exportAllCreatures(this);
         PotionExportData.exportAllPotions(this);
         //this.keywords =
@@ -360,6 +361,7 @@ public class ExportHelper {
         model.with("name", mod.name);
         model.with("mod", mod);
         model.with("relics",mod.relics);
+        model.with("blights",mod.blights);
         model.with("creatures",mod.creatures);
         model.with("potions",mod.potions);
         model.with("cards",mod.cards);

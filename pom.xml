@@ -3,7 +3,7 @@
 
   <groupId>SlaytabaseModStSExporter</groupId>
   <artifactId>SlaytabaseModStSExporter</artifactId>
-  <version>0.8.4</version>
+  <version>0.8.5</version>
 
   <name>SpireExporter+</name>
   <description>Exports card images, relics, potions, creatures and other data to HTML and Markdown.</description>

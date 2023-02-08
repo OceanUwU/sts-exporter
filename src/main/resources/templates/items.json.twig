@@ -35,6 +35,14 @@
       "mod": "{{ relic.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
   ],
+  "blights": [{% for blight in blights %}
+    {
+      "id": "{{ blight.id | escape('json') }}",
+      "name": "{{ blight.name | escape('json') }}",
+      "description": "{{ blight.description | escape('json') }}"{% if listmod %},
+      "mod": "{{ blight.mod.modName | escape('json') }}"{% endif %}
+    }{% if not(loop.last) %},{% endif %}{% endfor %}
+  ],
   "potions": [{% for potion in potions %}
     {
       "id": "{{ potion.id | escape('json') }}",
