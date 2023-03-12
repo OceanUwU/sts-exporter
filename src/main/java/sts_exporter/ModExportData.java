@@ -20,6 +20,7 @@ class ModExportData {
     public ArrayList<CreatureExportData> creatures = new ArrayList<>();
     public ArrayList<PotionExportData> potions = new ArrayList<>();
     public ArrayList<KeywordExportData> keywords = new ArrayList<>();
+    public ArrayList<PackExportData> packs = new ArrayList<>();
     public static final String BASE_GAME_ID = "slay-the-spire";
 
     ModExportData(ExportHelper export, ModInfo info) {
@@ -43,6 +44,7 @@ class ModExportData {
     }
 
     public void exportImages() {
+        for (PackExportData x : this.packs) x.exportImages();
         for (CardExportData x : this.cards) x.exportImages();
         for (RelicExportData x : this.relics) x.exportImages();
         for (BlightExportData x : this.blights) x.exportImages();

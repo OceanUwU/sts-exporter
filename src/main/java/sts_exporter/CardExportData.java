@@ -71,15 +71,17 @@ public class CardExportData implements Comparable<CardExportData> {
             this.pack = ((AbstractPackmasterCard)card).getTopText();
         }
 
-        if (upgradeCount < 9 && card.canUpgrade()) {
-            if (!Loader.isModLoaded("stslib") || !BranchingExport.testAndExport(export, card, this, upgradeCount))
-            {
-                AbstractCard copy = card.makeStatEquivalentCopy();
-                copy.upgrade();
-                copy.displayUpgrades();
-                this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
+        try {
+            if (upgradeCount < 9 && card.canUpgrade()) {
+                if (!Loader.isModLoaded("stslib") || !BranchingExport.testAndExport(export, card, this, upgradeCount))
+                {
+                    AbstractCard copy = card.makeStatEquivalentCopy();
+                    copy.upgrade();
+                    copy.displayUpgrades();
+                    this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
+                }
             }
-        }
+        } catch (Exception e) {}
 
         // cost
         if (card.cost == -1) {
@@ -243,9 +245,11 @@ public class CardExportData implements Comparable<CardExportData> {
     }
 
     public void exportImages() {
-        this.image.mkdir();
-        this.smallImage.mkdir();
-        exportImageToFile();
+        if (this.image != null) {
+            this.image.mkdir();
+            this.smallImage.mkdir();
+            exportImageToFile();
+        }
         if (upgrade != null) {
             upgrade.exportImages();
         }

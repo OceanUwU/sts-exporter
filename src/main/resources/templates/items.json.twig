@@ -69,5 +69,22 @@
       "names": [{% for x in keyword.names %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}],
       "mod": "{{ keyword.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
+  ],
+  "packs": [{% for pack in packs %}
+    {
+      "id": "{{ pack.id | escape('json') }}",
+      "name": "{{ pack.name | capitalize | escape('json') }}",
+      "description": "{{ pack.description | escape('json') }}",
+      "author": "{{ pack.author | escape('json') }}",
+      "credits": "{{ pack.credits | escape('json') }}",
+      "offense": "{{ pack.summary.offense | escape('json') }}",
+      "defense": "{{ pack.summary.defense | escape('json') }}",
+      "support": "{{ pack.summary.support | escape('json') }}",
+      "frontload": "{{ pack.summary.frontload | escape('json') }}",
+      "scaling": "{{ pack.summary.scaling | escape('json') }}",
+      "cards": [{% for x in pack.cards %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}],
+      "tags": [{% for x in pack.tags %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}]{% if listmod %},
+      "mod": "{{ pack.mod.modName | escape('json') }}"{% endif %}
+    }{% if not(loop.last) %},{% endif %}{% endfor %}
   ]
 }
