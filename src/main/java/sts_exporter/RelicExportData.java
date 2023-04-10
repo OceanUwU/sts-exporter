@@ -60,9 +60,7 @@ class RelicExportData implements Comparable<RelicExportData> {
     public void exportImages() {
         this.image.mkdir();
         this.popupImage.mkdir();
-        this.smallPopupImage.mkdir();
         exportImageToFile();
-        exportPopupImageToFile();
     }
 
     private void exportImageToFile() {

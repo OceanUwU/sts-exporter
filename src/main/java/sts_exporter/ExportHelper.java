@@ -21,6 +21,8 @@ import com.evacipated.cardcrawl.modthespire.Loader;
 import com.evacipated.cardcrawl.modthespire.ModInfo;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.megacrit.cardcrawl.cards.AbstractCard.CardColor;
+import com.megacrit.cardcrawl.cards.tempCards.Insight;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
 
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.jtwig.JtwigModel;
@@ -101,6 +103,7 @@ public class ExportHelper {
     }
 
     void exportAllImages() {
+        CardCrawlGame.cardPopup.open(new Insight());
         for (ModExportData mod : mods) {
             if (modIncludedInExport(mod)) {
                 mod.exportImages();

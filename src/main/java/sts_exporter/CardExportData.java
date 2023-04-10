@@ -9,14 +9,11 @@ import basemod.BaseMod;
 import basemod.abstracts.DynamicVariable;
 import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.CardModifierPatches;
 import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.DynamicTextBlocks;
-import basemod.patches.com.megacrit.cardcrawl.screens.compendium.CardLibraryScreen.EverythingFix;
 import basemod.patches.com.megacrit.cardcrawl.screens.compendium.CardLibraryScreen.NoLibraryType;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.evacipated.cardcrawl.mod.stslib.cards.interfaces.BranchingUpgradesCard;
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -25,16 +22,21 @@ import com.megacrit.cardcrawl.helpers.CardLibrary;
 import com.megacrit.cardcrawl.helpers.GameDictionary;
 import com.megacrit.cardcrawl.helpers.Hitbox;
 import com.megacrit.cardcrawl.screens.SingleCardViewPopup;
+
+import thePackmaster.SpireAnniversary5Mod;
 import thePackmaster.cards.AbstractPackmasterCard;
 
 import basemod.ReflectionHacks;
 import sts_exporter.optional.BranchingExport;
 
 public class CardExportData implements Comparable<CardExportData> {
+    public static boolean forceBeta = false;
     public AbstractCard card;
     public CardExportData upgrade;
+    public CardExportData beta;
     public CardExportData altUpgrade;
     public String id;
+    public boolean betaMode = false;
     public String name;
     public String color;
     public String rarity;
@@ -58,6 +60,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public CardExportData(ExportHelper export, AbstractCard card, int upgradeCount) {
         card.initializeDescription();
         this.card = card;
+        this.betaMode = forceBeta;
         this.id = card.cardID;
         this.name = card.name;
         this.rarity = Exporter.rarityName(card.rarity);
@@ -75,11 +78,20 @@ public class CardExportData implements Comparable<CardExportData> {
             if (upgradeCount < 9 && card.canUpgrade()) {
                 if (!Loader.isModLoaded("stslib") || !BranchingExport.testAndExport(export, card, this, upgradeCount))
                 {
+                    if (Loader.isModLoaded("anniv5"))
+                        SpireAnniversary5Mod.oneFrameMode = true;
                     AbstractCard copy = card.makeStatEquivalentCopy();
                     copy.upgrade();
                     copy.displayUpgrades();
                     this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
+                    if (Loader.isModLoaded("anniv5"))
+                        SpireAnniversary5Mod.oneFrameMode = false;
                 }
+            } else if (!forceBeta && upgradeCount == 0 && !card.canUpgrade()) {
+                forceBeta = true;
+                AbstractCard copy = card.makeStatEquivalentCopy();
+                beta = new CardExportData(export, copy, upgradeCount);
+                forceBeta = false;
             }
         } catch (Exception e) {}
 
@@ -110,7 +122,7 @@ public class CardExportData implements Comparable<CardExportData> {
         }
         // image
         String imgFile = makeImageFilename();
-        this.image = export.exportPath(this.mod, "card-images", imgFile, ".png");
+        this.image = export.exportPath(this.mod, forceBeta ? "beta-card-images" : "card-images", imgFile, ".png");
         this.smallImage = export.exportPath(this.mod, "small-card-images", imgFile, ".png");
     }
 
@@ -246,12 +258,18 @@ public class CardExportData implements Comparable<CardExportData> {
 
     public void exportImages() {
         if (this.image != null) {
+            if (Loader.isModLoaded("anniv5"))
+                SpireAnniversary5Mod.oneFrameMode = card.upgraded;
             this.image.mkdir();
-            this.smallImage.mkdir();
             exportImageToFile();
+            if (Loader.isModLoaded("anniv5"))
+                SpireAnniversary5Mod.oneFrameMode = false;
         }
         if (upgrade != null) {
             upgrade.exportImages();
+        }
+        if (beta != null) {
+            beta.exportImages();
         }
         if (altUpgrade != null) {
             altUpgrade.exportImages();
@@ -265,8 +283,10 @@ public class CardExportData implements Comparable<CardExportData> {
         card.isSeen = true;
         SingleCardViewPopup scv = CardCrawlGame.cardPopup;
         scv.open(card);
+        ReflectionHacks.privateMethod(SingleCardViewPopup.class, "loadPortraitImg").invoke(scv);
         SingleCardViewPopup.isViewingUpgrade = card.upgraded;
         SingleCardViewPopup.enableUpgradeToggle = false;
+        Settings.PLAYTESTER_ART_MODE = betaMode || card.upgraded;
         // get hitbox
         Hitbox cardHb = (Hitbox)ReflectionHacks.getPrivate(CardCrawlGame.cardPopup, SingleCardViewPopup.class, "cardHb");
         float lpadding = 64.0f * Settings.scale;
@@ -293,9 +313,6 @@ public class CardExportData implements Comparable<CardExportData> {
             callPrivate(scv, SingleCardViewPopup.class, "renderCost", SpriteBatch.class, sb);
         }, (Pixmap pixmap) -> {
             PixmapIO.writePNG(Gdx.files.local(image.absolute), pixmap);
-            Pixmap smallPixmap = ExportHelper.resizePixmap(pixmap, 231, 298);
-            PixmapIO.writePNG(Gdx.files.local(smallImage.absolute), smallPixmap);
-            smallPixmap.dispose();
         });
         SingleCardViewPopup.enableUpgradeToggle = true;
         scv.close();
