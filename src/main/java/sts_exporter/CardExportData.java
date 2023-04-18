@@ -14,6 +14,9 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.PixmapIO;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.evacipated.cardcrawl.mod.stslib.fields.cards.AbstractCard.CommonKeywordIconsField;
+import com.evacipated.cardcrawl.mod.stslib.fields.cards.AbstractCard.PurgeField;
+import com.evacipated.cardcrawl.mod.stslib.patches.CommonKeywordIconsPatches.SingleCardViewRenderIconOnCard;
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -41,6 +44,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public String color;
     public String rarity;
     public String type;
+    public int upgrades;
     public String pack;
     public ExportPath image, smallImage;
     public String cost, costAndUpgrade;
@@ -67,6 +71,7 @@ public class CardExportData implements Comparable<CardExportData> {
         this.color = Exporter.colorName(card.color);
         this.type = Exporter.typeString(card.type);
         this.mod = export.findMod(card.getClass());
+        this.upgrades = upgradeCount;
         if (!card.upgraded) {
             this.mod.cards.add(this);
         }
@@ -107,6 +112,18 @@ public class CardExportData implements Comparable<CardExportData> {
 
         // description
         this.finalRawDescription = CardModifierPatches.CardModifierOnCreateDescription.calculateRawDescription(card, card.rawDescription);
+        if(CommonKeywordIconsField.useIcons.get(card)) {
+            if (card.isInnate)
+                finalRawDescription = "Innate. NL " + finalRawDescription;
+            if (card.isEthereal)
+                finalRawDescription = "Ethereal. NL " + finalRawDescription;
+            if (card.retain || card.selfRetain)
+                finalRawDescription = "Retain. NL " + finalRawDescription;
+            if (card.purgeOnUse || PurgeField.purge.get(card))
+                finalRawDescription += " NL Purge.";
+            if (card.exhaust || card.exhaustOnUseOnce)
+                finalRawDescription += " NL Exhaust.";
+        }
 
         variableValues = new HashMap<>();
         finalRawDescription = preProcessDescription(finalRawDescription);
@@ -121,7 +138,11 @@ public class CardExportData implements Comparable<CardExportData> {
             this.textWikiFormat = processCombinedDescription(combineDescriptions(finalRawDescription, upgrade.finalRawDescription, TextMode.WIKI_FORMAT), TextMode.WIKI_FORMAT);
         }
         // image
-        String imgFile = makeImageFilename();
+        String imgFile = id.replaceAll(":", "-");
+        if (name.contains("*"))
+            imgFile += name.substring(name.lastIndexOf("*"));
+        else if (upgradeCount > 0)
+            imgFile += "+"+upgradeCount;
         this.image = export.exportPath(this.mod, forceBeta ? "beta-card-images" : "card-images", imgFile, ".png");
         this.smallImage = export.exportPath(this.mod, "small-card-images", imgFile, ".png");
     }
@@ -282,11 +303,11 @@ public class CardExportData implements Comparable<CardExportData> {
         card.isLocked = false;
         card.isSeen = true;
         SingleCardViewPopup scv = CardCrawlGame.cardPopup;
+        Settings.PLAYTESTER_ART_MODE = betaMode || card.upgraded;
         scv.open(card);
         ReflectionHacks.privateMethod(SingleCardViewPopup.class, "loadPortraitImg").invoke(scv);
         SingleCardViewPopup.isViewingUpgrade = card.upgraded;
         SingleCardViewPopup.enableUpgradeToggle = false;
-        Settings.PLAYTESTER_ART_MODE = betaMode || card.upgraded;
         // get hitbox
         Hitbox cardHb = (Hitbox)ReflectionHacks.getPrivate(CardCrawlGame.cardPopup, SingleCardViewPopup.class, "cardHb");
         float lpadding = 64.0f * Settings.scale;
@@ -311,6 +332,7 @@ public class CardExportData implements Comparable<CardExportData> {
             }
             callPrivate(scv, SingleCardViewPopup.class, "renderTitle", SpriteBatch.class, sb);
             callPrivate(scv, SingleCardViewPopup.class, "renderCost", SpriteBatch.class, sb);
+            SingleCardViewRenderIconOnCard.patch(scv, sb, card, cardHb);
         }, (Pixmap pixmap) -> {
             PixmapIO.writePNG(Gdx.files.local(image.absolute), pixmap);
         });
@@ -563,15 +585,6 @@ public class CardExportData implements Comparable<CardExportData> {
             }
         }
         return w;
-    }
-
-    private String makeImageFilename() {
-        String colorString = color, nameString = name;
-        if (colorString.length() > 10)
-            colorString = colorString.substring(0, 10);
-        if (nameString.length() > 50) //wtf you doing with a 50 letter card name
-            nameString = nameString.substring(0, 50);
-        return colorString + "-" + nameString;
     }
 
     private static final ArrayList<String> words(String str) {

@@ -44,11 +44,11 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
 
     public CreatureExportData(ExportHelper export, AbstractCreature creature) {
         this.creature = creature;
-        this.id = creature.id;
+        this.id = creature.id != null ? creature.id : creature.getClass().getSimpleName();
         this.name = creature.name;
         this.mod = export.findMod(creature.getClass());
         this.mod.creatures.add(this);
-        this.image = export.exportPath(this.mod, "creatures", creature.id != null ? creature.id : creature.getClass().getSimpleName(), ".png");
+        this.image = export.exportPath(this.mod, "creatures", this.id, ".png");
         this.minHP = this.maxHP = creature.maxHealth;
         if (creature instanceof AbstractPlayer) {
             AbstractPlayer player = (AbstractPlayer)creature;
