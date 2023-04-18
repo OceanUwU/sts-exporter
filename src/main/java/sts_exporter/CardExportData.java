@@ -338,6 +338,7 @@ public class CardExportData implements Comparable<CardExportData> {
         });
         SingleCardViewPopup.enableUpgradeToggle = true;
         scv.close();
+        Settings.PLAYTESTER_ART_MODE = false;
     }
 
     private void exportImageToFileLowResolution(String imageFile) {
