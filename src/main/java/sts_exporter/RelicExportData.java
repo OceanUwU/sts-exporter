@@ -18,6 +18,8 @@ import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.helpers.RelicLibrary;
 import com.megacrit.cardcrawl.relics.AbstractRelic;
+import com.megacrit.cardcrawl.relics.Circlet;
+import com.megacrit.cardcrawl.relics.RedCirclet;
 import com.megacrit.cardcrawl.screens.SingleRelicViewPopup;
 
 import basemod.BaseMod;
@@ -364,6 +366,8 @@ class RelicExportData implements Comparable<RelicExportData> {
         ArrayList<RelicExportData> relics = new ArrayList<>();
         @SuppressWarnings("unchecked")
         HashMap<String,AbstractRelic> sharedRelics = (HashMap<String,AbstractRelic>)ReflectionHacks.getPrivateStatic(RelicLibrary.class, "sharedRelics");
+        relics.add(new RelicExportData(export, new Circlet(), null));
+        relics.add(new RelicExportData(export, new RedCirclet(), null));
         for (AbstractRelic relic : sharedRelics.values()) {
             relics.add(new RelicExportData(export, relic, null));
         }
