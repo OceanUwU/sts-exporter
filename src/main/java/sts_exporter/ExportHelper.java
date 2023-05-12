@@ -57,6 +57,7 @@ public class ExportHelper {
         Exporter.logger.info("Collecting items");
         PackExportData.exportAllPacks(this);
         AugmentExportData.exportAllAugments(this);
+        NodeModifierExportData.exportAllModifiers(this);
         CardExportData.exportAllCards(this);
         RelicExportData.exportAllRelics(this);
         BlightExportData.exportAllBlights(this);
@@ -369,6 +370,7 @@ public class ExportHelper {
         model.with("blights",mod.blights);
         model.with("packs",mod.packs);
         model.with("augments",mod.augments);
+        model.with("nodemodifiers",mod.nodemodifiers);
         model.with("creatures",mod.creatures);
         model.with("potions",mod.potions);
         model.with("cards",mod.cards);

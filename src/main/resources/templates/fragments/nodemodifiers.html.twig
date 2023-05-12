@@ -1,0 +1,18 @@
+<table class="sortable">
+  <tr>
+    <th>Name</th>
+    <th>Image</th>
+    <th>Type</th>
+    <th>Description</th>{% if listmod %}
+    <th>Mod</th>{% endif %}
+  </tr>
+  {% for nodemodifier in nodemodifiers %}
+  <tr>
+    <td>{{ nodemodifier.name }}</td>
+    <td><a href="{{ nodemodifier.image.relativeTo(dir) }}"><img src="{{ nodemodifier.image.relativeTo(dir) }}"></a></td>
+    <td>{{ nodemodifier.type }}</td>
+    <td>{{ nodemodifier.descriptionHTML }}</td>{% if listmod %}
+    <td><a href="{{nodemodifier.mod.id}}/index.html">{{ augnodemodifierment.mod.modName }}</a></td>{% endif %}
+  </tr>
+  {% endfor %}
+</table>

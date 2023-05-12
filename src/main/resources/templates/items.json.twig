@@ -96,5 +96,15 @@
       "description": "{{ augment.descriptionPlain | escape('json') }}"{% if listmod %},
       "mod": "{{ augment.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
+  ],
+  "nodemodifiers": [{% for nodemodifier in nodemodifiers %}
+    {
+      "id": "{{ nodemodifier.id | escape('json') }}",
+      "name": "{{ nodemodifier.name | escape('json') }}",
+      "type": "{{ nodemodifier.type | escape('json') }}",
+      "description": "{{ nodemodifier.descriptionPlain | escape('json') }}",
+      "rooms": [{% for x in nodemodifier.roomClasses %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}]{% if listmod %},
+      "mod": "{{ nodemodifier.mod.modName | escape('json') }}"{% endif %}
+    }{% if not(loop.last) %},{% endif %}{% endfor %}
   ]
 }

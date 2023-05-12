@@ -3,7 +3,7 @@
 
   <groupId>SlaytabaseModStSExporter</groupId>
   <artifactId>SlaytabaseModStSExporter</artifactId>
-  <version>0.8.8</version>
+  <version>0.8.9</version>
 
   <name>SpireExporter for Slaytabase</name>
   <description>Exports card images, relics, potions, creatures and other data to HTML and Markdown.</description>
@@ -81,6 +81,13 @@
         <version>0.7.0</version>
         <scope>system</scope>
         <systemPath>${Steam.path}/workshop/content/646570/2970981743/CardAugments.jar</systemPath>
+    </dependency>
+    <dependency>
+        <groupId>SpireLocations</groupId>
+        <artifactId>SpireLocations</artifactId>
+        <version>1.1.1</version>
+        <scope>system</scope>
+        <systemPath>${Steam.path}/workshop/content/646570/2862448454/SpireLocations.jar</systemPath>
     </dependency>
   </dependencies>
 
