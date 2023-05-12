@@ -1,0 +1,16 @@
+<table class="sortable">
+  <tr>
+    <th>Name</th>
+    <th>Rarity</th>
+    <th>Description</th>{% if listmod %}
+    <th>Mod</th>{% endif %}
+  </tr>
+  {% for augment in augments %}
+  <tr>
+    <td>{{ augment.name }}</td>
+    <td>{{ augment.rarity }}</td>
+    <td>{{ augment.descriptionHTML }}</td>{% if listmod %}
+    <td><a href="{{augment.mod.id}}/index.html">{{ augment.mod.modName }}</a></td>{% endif %}
+  </tr>
+  {% endfor %}
+</table>

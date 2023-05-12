@@ -75,6 +75,13 @@
         <scope>system</scope>
         <systemPath>${Steam.path}/workshop/content/646570/1610056683/downfall.jar</systemPath>
     </dependency>
+    <dependency>
+        <groupId>CardAugments</groupId>
+        <artifactId>CardAugments</artifactId>
+        <version>0.7.0</version>
+        <scope>system</scope>
+        <systemPath>${Steam.path}/workshop/content/646570/2970981743/CardAugments.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <repositories>

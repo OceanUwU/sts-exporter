@@ -21,6 +21,7 @@ class ModExportData {
     public ArrayList<PotionExportData> potions = new ArrayList<>();
     public ArrayList<KeywordExportData> keywords = new ArrayList<>();
     public ArrayList<PackExportData> packs = new ArrayList<>();
+    public ArrayList<AugmentExportData> augments = new ArrayList<>();
     public static final String BASE_GAME_ID = "slay-the-spire";
 
     ModExportData(ExportHelper export, ModInfo info) {

@@ -87,5 +87,14 @@
       "tags": [{% for x in pack.tags %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}]{% if listmod %},
       "mod": "{{ pack.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
+  ],
+  "augments": [{% for augment in augments %}
+    {
+      "id": "{{ augment.id | escape('json') }}",
+      "name": "{{ augment.name | escape('json') }}",
+      "rarity": "{{ augment.rarity | escape('json') }}",
+      "description": "{{ augment.descriptionPlain | escape('json') }}"{% if listmod %},
+      "mod": "{{ augment.mod.modName | escape('json') }}"{% endif %}
+    }{% if not(loop.last) %},{% endif %}{% endfor %}
   ]
 }
