@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.evacipated.cardcrawl.mod.stslib.patches.FlavorText.PotionFlavorFields;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.helpers.PotionHelper;
 import com.megacrit.cardcrawl.potions.AbstractPotion;
@@ -13,7 +14,7 @@ class PotionExportData implements Comparable<PotionExportData> {
     public AbstractPotion potion;
     public ModExportData mod;
     public ExportPath image;
-    public String id, name, rarity;
+    public String id, name, rarity, flavor;
     public String description, descriptionHTML, descriptionPlain;
     public String playerClass;
 
@@ -26,6 +27,7 @@ class PotionExportData implements Comparable<PotionExportData> {
         this.description = potion.description;
         this.descriptionHTML = RelicExportData.smartTextToHTML(potion.description,true,true);
         this.descriptionPlain = RelicExportData.smartTextToPlain(potion.description,true,true);
+        this.flavor = RelicExportData.smartTextToPlain(PotionFlavorFields.flavor.get(potion),true,true);
         this.rarity = Exporter.rarityName(potion.rarity);
         this.playerClass = cls == null ? "" : cls.toString();
         this.image = export.exportPath(this.mod, "potions", this.id.replaceAll(":", "-"), ".png");

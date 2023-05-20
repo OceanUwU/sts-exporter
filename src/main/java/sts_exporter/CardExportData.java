@@ -17,6 +17,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.mod.stslib.fields.cards.AbstractCard.CommonKeywordIconsField;
 import com.evacipated.cardcrawl.mod.stslib.fields.cards.AbstractCard.PurgeField;
 import com.evacipated.cardcrawl.mod.stslib.patches.CommonKeywordIconsPatches.SingleCardViewRenderIconOnCard;
+import com.evacipated.cardcrawl.mod.stslib.patches.FlavorText.AbstractCardFlavorFields;
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -44,6 +45,7 @@ public class CardExportData implements Comparable<CardExportData> {
     public String color;
     public String rarity;
     public String type;
+    public String flavor;
     public int upgrades;
     public String pack;
     public ExportPath image, smallImage;
@@ -70,6 +72,7 @@ public class CardExportData implements Comparable<CardExportData> {
         this.rarity = Exporter.rarityName(card.rarity);
         this.color = Exporter.colorName(card.color);
         this.type = Exporter.typeString(card.type);
+        this.flavor = RelicExportData.smartTextToPlain(AbstractCardFlavorFields.flavor.get(card),true,true);
         this.mod = export.findMod(card.getClass());
         this.upgrades = upgradeCount;
         if (!card.upgraded) {
