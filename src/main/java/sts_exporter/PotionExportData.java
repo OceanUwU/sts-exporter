@@ -3,9 +3,10 @@ package sts_exporter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-
+import basemod.BaseMod;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.mod.stslib.patches.FlavorText.PotionFlavorFields;
+import com.megacrit.cardcrawl.cards.AbstractCard;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.helpers.PotionHelper;
 import com.megacrit.cardcrawl.potions.AbstractPotion;
@@ -16,7 +17,7 @@ class PotionExportData implements Comparable<PotionExportData> {
     public ExportPath image;
     public String id, name, rarity, flavor;
     public String description, descriptionHTML, descriptionPlain;
-    public String playerClass;
+    public String playerClass, pool;
 
     PotionExportData(ExportHelper export, AbstractPotion potion, AbstractPlayer.PlayerClass cls) {
         this.potion = potion;
@@ -30,6 +31,7 @@ class PotionExportData implements Comparable<PotionExportData> {
         this.flavor = RelicExportData.smartTextToPlain(PotionFlavorFields.flavor.get(potion),true,true);
         this.rarity = Exporter.rarityName(potion.rarity);
         this.playerClass = cls == null ? "" : cls.toString();
+        this.pool = cls == null ? "" : Exporter.colorName(BaseMod.findCharacter(cls).getCardColor());
         this.image = export.exportPath(this.mod, "potions", this.id.replaceAll(":", "-"), ".png");
     }
 

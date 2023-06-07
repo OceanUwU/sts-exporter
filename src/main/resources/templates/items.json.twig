@@ -50,6 +50,7 @@
       "id": "{{ potion.id | escape('json') }}",
       "name": "{{ potion.name | escape('json') }}",
       "rarity": "{{ potion.rarity | escape('json') }}",{% if (potion.flavor is defined) and (potion.flavor is not null) and (potion.flavor is not empty) and (potion.flavor != "") %}
+      "color": "{{ potion.pool | escape('json') }}",
       "flavor": "{{ potion.flavor | escape('json') }}",{% endif %}
       "description": "{{ potion.descriptionPlain | escape('json') }}"{% if listmod %},
       "mod": "{{ potion.mod.modName | escape('json') }}"{% endif %}
