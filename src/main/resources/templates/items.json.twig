@@ -62,7 +62,9 @@
       "name": "{{ creature.name | escape('json') }}",
       "type": "{{ creature.type | escape('json') }}",
       "minHP": "{{ creature.minHP | escape('json') }}",
-      "maxHP": "{{ creature.maxHP | escape('json') }}"{% if listmod %},
+      "maxHP": "{{ creature.maxHP | escape('json') }}",
+      "minHPA": "{{ creature.minHPAsc | escape('json') }}",
+      "maxHPA": "{{ creature.maxHPAsc | escape('json') }}"{% if listmod %},
       "mod": "{{ creature.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
   ],

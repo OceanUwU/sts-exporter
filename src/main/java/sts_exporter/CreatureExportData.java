@@ -9,9 +9,11 @@ import java.util.HashSet;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.backends.lwjgl.LwjglGraphics;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Matrix4;
 import com.badlogic.gdx.math.Vector2;
 import com.esotericsoftware.spine.Skeleton;
+import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 import com.megacrit.cardcrawl.characters.AbstractPlayer;
 import com.megacrit.cardcrawl.core.AbstractCreature;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -35,12 +37,17 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
     public String id;
     public String name;
     public String type;
-    public int minHP, maxHP;
+    public int minHP, maxHP, minHPAsc, maxHPAsc;
     public ModExportData mod;
     // for players
     public boolean isPlayer;
     public String cardColor;
     // for creatures
+    private static boolean highAsc = false;
+    private static HashMap<Class<?>, Integer> minHPs = new HashMap<>();
+    private static HashMap<Class<?>, Integer> maxHPs = new HashMap<>();
+    private static HashMap<Class<?>, Integer> ascensionMinHPs = new HashMap<>();
+    private static HashMap<Class<?>, Integer> ascensionMaxHPs = new HashMap<>();
 
     public CreatureExportData(ExportHelper export, AbstractCreature creature) {
         this.creature = creature;
@@ -49,17 +56,27 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
         this.mod = export.findMod(creature.getClass());
         this.mod.creatures.add(this);
         this.image = export.exportPath(this.mod, "creatures", this.id, ".png");
-        this.minHP = this.maxHP = creature.maxHealth;
         if (creature instanceof AbstractPlayer) {
             AbstractPlayer player = (AbstractPlayer)creature;
             this.isPlayer = true;
             this.type = "Player";
             this.cardColor = Exporter.colorName(player.getCardColor());
-            this.minHP = this.maxHP = player.startingMaxHP;
+            this.maxHP = player.startingMaxHP;
+            this.maxHPAsc = player.startingMaxHP - player.getAscensionMaxHPLoss();
+            this.minHP = MathUtils.round(maxHP * 0.9f);
+            this.minHPAsc = MathUtils.round(maxHPAsc * 0.9f);
         } else if (creature instanceof AbstractMonster) {
             AbstractMonster monster = (AbstractMonster)creature;
             this.type = Exporter.toTitleCase(monster.type.toString());
-            // TODO: find and call constructor at different ascension levels to get max hp and other variables
+            minHP = maxHP = minHPAsc = maxHPAsc = creature.maxHealth;
+            if (minHPs.containsKey(creature.getClass()))
+                minHP = minHPs.get(creature.getClass());
+            if (maxHPs.containsKey(creature.getClass()))
+                maxHP = maxHPs.get(creature.getClass());
+            if (ascensionMinHPs.containsKey(creature.getClass()))
+                minHPAsc = ascensionMinHPs.get(creature.getClass());
+            if (ascensionMaxHPs.containsKey(creature.getClass()))
+                maxHPAsc = ascensionMaxHPs.get(creature.getClass());
         }
     }
 
@@ -139,8 +156,19 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
 
     public static ArrayList<AbstractCreature> getAllCreatures() {
         ArrayList<AbstractCreature> creatures = new ArrayList<>();
+        highAsc = false;
+        AbstractDungeon.ascensionLevel = 0;
         creatures.addAll(getAllPlayers());
+
+        minHPs.clear();
+        maxHPs.clear();
+        ascensionMinHPs.clear();
+        ascensionMaxHPs.clear();
         creatures.addAll(getAllMonsters());
+        highAsc = true;
+        AbstractDungeon.ascensionLevel = 20;
+        getAllMonsters();
+
         return creatures;
     }
 
@@ -231,5 +259,31 @@ public class CreatureExportData implements Comparable<CreatureExportData> {
         if (creature.isPlayer && !that.creature.isPlayer) return -1;
         if (!creature.isPlayer && that.creature.isPlayer) return 1;
         return name.compareTo(that.name);
+    }
+
+    @SpirePatch(clz=AbstractMonster.class, method="setHp", paramtypez={int.class})
+    public static class OnSetHP {
+        public static void Prefix(AbstractMonster __instance, int hp) {
+            if (highAsc) {
+                ascensionMinHPs.put(__instance.getClass(), hp);
+                ascensionMaxHPs.put(__instance.getClass(), hp);
+            } else {
+                minHPs.put(__instance.getClass(), hp);
+                maxHPs.put(__instance.getClass(), hp);
+            }
+        }
+    }
+
+    @SpirePatch(clz=AbstractMonster.class, method="setHp", paramtypez={int.class, int.class})
+    public static class OnSetHPMinMax {
+        public static void Prefix(AbstractMonster __instance, int minHp, int maxHp) {
+            if (highAsc) {
+                ascensionMinHPs.put(__instance.getClass(), minHp);
+                ascensionMaxHPs.put(__instance.getClass(), maxHp);
+            } else {
+                minHPs.put(__instance.getClass(), minHp);
+                maxHPs.put(__instance.getClass(), maxHp);
+            }
+        }
     }
 }
