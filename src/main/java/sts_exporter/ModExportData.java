@@ -29,7 +29,7 @@ class ModExportData {
         this.info = info;
         this.id = info.ID;
         this.name = info.Name;
-        this.modName = info.Name;
+        this.modName = info.Name.replace(":", "");
         this.url = info.jarURL;
     }
 

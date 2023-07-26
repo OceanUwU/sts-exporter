@@ -1,14 +1,14 @@
 package sts_exporter;
 
+import basemod.ReflectionHacks;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.evacipated.cardcrawl.modthespire.Loader;
 import com.megacrit.cardcrawl.helpers.BlightHelper;
 import thePackmaster.SpireAnniversary5Mod;
 import thePackmaster.hats.HatMenu;
 import thePackmaster.packs.AbstractCardPack;
-import thePackmaster.packs.AbstractPackPreviewCard;
-import thePackmaster.summaries.PackSummary;
-import thePackmaster.summaries.PackSummaryReader;
+import thePackmaster.packs.PackPreviewCard;
+import thePackmaster.summaries.PackSummaryDisplay;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,7 +23,7 @@ class PackExportData implements Comparable<PackExportData> {
     public String name;
     public String author;
     public String credits;
-    public PackSummary summary;
+    public AbstractCardPack.PackSummary summary;
     public ArrayList<String> cards;
     public ArrayList<String> tags;
     public String description, descriptionHTML, descriptionPlain;
@@ -37,9 +37,11 @@ class PackExportData implements Comparable<PackExportData> {
         this.name = pack.name;
         this.author = pack.author;
         this.credits = RelicExportData.smartTextToPlain(pack.credits, true, true);
-        this.summary = PackSummaryReader.getPackSummary(this.id);
-        List<String> tagsList = this.summary.tags.stream().collect(Collectors.toList());
-        this.tags = new ArrayList<String>(tagsList);
+        this.summary = pack.summary;
+        List<AbstractCardPack.PackSummary.Tags> tagsList = this.summary.tags.stream().collect(Collectors.toList());
+        this.tags = new ArrayList<String>();
+        for (AbstractCardPack.PackSummary.Tags tag : tagsList)
+            tags.add(((String)ReflectionHacks.privateStaticMethod(PackSummaryDisplay.class, "getTagString", AbstractCardPack.PackSummary.Tags.class).invoke(new Object[]{tag})).replace("#y", ""));
         List<String> cardsList = pack.cards.stream().map(c -> c.name).collect(Collectors.toList());
         this.cards = new ArrayList<String>(cardsList);
         this.description = RelicExportData.smartTextToPlain(pack.description, true, true);
@@ -54,7 +56,7 @@ class PackExportData implements Comparable<PackExportData> {
     private void exportImageToFile() {
         Exporter.logger.info("Rendering pack image to " + this.image.absolute);
         ExportHelper.renderSpriteBatchToPNG(-240.f/2.f, -322.f/2.f, 240.f, 322.f, 1.0f, this.image.absolute, (SpriteBatch sb) -> {
-            AbstractPackPreviewCard preview = pack.makePreviewCard();
+            PackPreviewCard preview = pack.makePreviewCard();
             preview.render(sb);
         });
     }
