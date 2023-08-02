@@ -102,6 +102,16 @@
       "mod": "{{ augment.mod.modName | escape('json') }}"{% endif %}
     }{% if not(loop.last) %},{% endif %}{% endfor %}
   ],
+  "adventurerboards": [{% for board in adventurerboards %}
+    {
+      "id": "{{ board.id | escape('json') }}",
+      "name": "{{ board.name | escape('json') }}",
+      "type": "{{ board.type | escape('json') }}",
+      "specialRule": "{{ board.specialRule | escape('json') }}",
+      "effects": [{% for x in board.effects %}"{{ x | escape('json') }}"{% if not(loop.last) %},{% endif %}{% endfor %}]{% if listmod %},
+      "mod": "{{ board.mod.modName | escape('json') }}"{% endif %}
+    }{% if not(loop.last) %},{% endif %}{% endfor %}
+  ],
   "nodemodifiers": [{% for nodemodifier in nodemodifiers %}
     {
       "id": "{{ nodemodifier.id | escape('json') }}",
