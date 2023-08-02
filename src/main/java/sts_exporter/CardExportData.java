@@ -32,6 +32,8 @@ import thePackmaster.cards.AbstractPackmasterCard;
 
 import basemod.ReflectionHacks;
 import sts_exporter.optional.BranchingExport;
+import theFishing.cards.AbstractFishingCard;
+import theFishing.patch.foil.FoilPatches;
 
 public class CardExportData implements Comparable<CardExportData> {
     public static boolean forceBeta = false;
@@ -92,6 +94,8 @@ public class CardExportData implements Comparable<CardExportData> {
                     copy.upgrade();
                     copy.displayUpgrades();
                     this.upgrade = new CardExportData(export, copy, upgradeCount + 1);
+                    if (Loader.isModLoaded("fishing") && copy instanceof AbstractFishingCard)
+                        FoilPatches.makeFoil(copy);
                     if (Loader.isModLoaded("anniv5"))
                         SpireAnniversary5Mod.oneFrameMode = false;
                 }
