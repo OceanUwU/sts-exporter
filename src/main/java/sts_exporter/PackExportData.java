@@ -45,7 +45,7 @@ class PackExportData implements Comparable<PackExportData> {
         List<String> cardsList = pack.cards.stream().map(c -> c.name).collect(Collectors.toList());
         this.cards = new ArrayList<String>(cardsList);
         this.description = RelicExportData.smartTextToPlain(pack.description, true, true);
-        this.image = export.exportPath(this.mod, "packs", this.id, ".png");
+        this.image = export.exportPath(this.mod, "packs", id.replaceAll(":", "-"), ".png");
     }
 
     public void exportImages() {
