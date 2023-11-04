@@ -3,7 +3,7 @@
 
   <groupId>SlaytabaseModStSExporter</groupId>
   <artifactId>SlaytabaseModStSExporter</artifactId>
-  <version>0.8.15</version>
+  <version>0.8.16</version>
 
   <name>SpireExporter for Slaytabase</name>
   <description>Exports card images, relics, potions, creatures and other data to HTML and Markdown.</description>
@@ -13,7 +13,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <SlayTheSpire.version>12-22-2020</SlayTheSpire.version>
     <ModTheSpire.version>3.15.0</ModTheSpire.version>
-    <Steam.path>D:/Prog/Steam/steamapps</Steam.path>
+    <Steam.path>C:/Program Files (x86)/Steam/steamapps</Steam.path>
   </properties>
 
   <dependencies>
