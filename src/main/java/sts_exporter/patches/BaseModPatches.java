@@ -5,11 +5,12 @@ import java.util.HashMap;
 import com.evacipated.cardcrawl.modthespire.lib.SpirePatch;
 
 import basemod.BaseMod;
+import basemod.helpers.KeywordColorInfo;
 
 public class BaseModPatches {
     public static HashMap<String, String> keywordClasses = new HashMap<>();
 
-    @SpirePatch(clz = BaseMod.class, method="addKeyword", paramtypez={String.class, String.class, String[].class, String.class})
+    @SpirePatch(clz = BaseMod.class, method="addKeyword", paramtypez={String.class, String.class, String[].class, String.class, KeywordColorInfo.class})
     public static class AddKeyword {
         public static void Postfix(String modId, String proper, String[] names, String description) {
             // A keyword was added, figure out which mod did it.

@@ -13,7 +13,7 @@
     <maven.compiler.target>1.8</maven.compiler.target>
     <SlayTheSpire.version>12-22-2020</SlayTheSpire.version>
     <ModTheSpire.version>3.15.0</ModTheSpire.version>
-    <Steam.path>C:/Program Files (x86)/Steam/steamapps</Steam.path>
+    <Steam.path>${user.home}/.local/share/Steam/steamapps</Steam.path>
   </properties>
 
   <dependencies>
@@ -28,7 +28,7 @@
     <dependency>
       <groupId>org.jtwig</groupId>
       <artifactId>jtwig-core</artifactId>
-      <version>5.85.0.RELEASE</version>
+      <version>5.87.0.RELEASE</version>
       <scope>compile</scope>
     </dependency>
     <!--<dependency>
@@ -73,7 +73,7 @@
         <artifactId>downfall</artifactId>
         <version>4.3</version>
         <scope>system</scope>
-        <systemPath>${Steam.path}/workshop/content/646570/1610056683/downfall.jar</systemPath>
+        <systemPath>${Steam.path}/workshop/content/646570/1610056683/Downfall.jar</systemPath>
     </dependency>
     <dependency>
         <groupId>CardAugments</groupId>
