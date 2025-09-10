@@ -6,7 +6,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import basemod.BaseMod;
+import basemod.abstracts.AbstractCardModifier;
 import basemod.abstracts.DynamicVariable;
+import basemod.helpers.CardModifierManager;
 import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.CardModifierPatches;
 import basemod.patches.com.megacrit.cardcrawl.cards.AbstractCard.DynamicTextBlocks;
 import basemod.patches.com.megacrit.cardcrawl.screens.compendium.CardLibraryScreen.NoLibraryType;
@@ -340,6 +342,8 @@ public class CardExportData implements Comparable<CardExportData> {
             callPrivate(scv, SingleCardViewPopup.class, "renderTitle", SpriteBatch.class, sb);
             callPrivate(scv, SingleCardViewPopup.class, "renderCost", SpriteBatch.class, sb);
             SingleCardViewRenderIconOnCard.patch(scv, sb, card, cardHb);
+            for (AbstractCardModifier m : CardModifierManager.modifiers(card))
+                m.onSingleCardViewRender(card, sb);
         }, (Pixmap pixmap) -> {
             PixmapIO.writePNG(Gdx.files.local(image.absolute), pixmap);
         });
